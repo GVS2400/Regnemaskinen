@@ -799,140 +799,191 @@ body[data-theme="football"]::before {
 }
 
 /* ============================================
-   LEVEL SELECT SCREEN
+   CONFIG SCREEN ("Tilpas dit eventyr")
    ============================================ */
-.level-select-screen {
+.config-screen {
   height: 100vh;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: 60px 1fr;
+  overflow: hidden;
   position: relative;
   z-index: 1;
-  overflow: hidden;
 }
 
-.level-select-hero {
-  padding: 52px 60px 36px;
-  border-bottom: 1px solid var(--rule);
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  flex-shrink: 0;
+/* Re-uses .chapter-topbar + .ch-poster from chapter screen */
+
+.config-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  padding: 40px 24px 48px;
+  position: relative;
+  z-index: 2;
+  overflow-y: auto;
 }
 
-.level-select-eyebrow {
-  font-family: var(--font-ui);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  margin-bottom: 14px;
-  display: block;
+.config-hero {
+  text-align: center;
 }
-
-.level-select-title {
+.config-title {
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 900;
-  font-size: clamp(3.2rem, 7vw, 7rem);
-  line-height: 0.88;
-  color: var(--accent);
-  letter-spacing: -0.04em;
-  margin-bottom: 8px;
+  font-size: clamp(2.4rem, 5.5vw, 4.5rem);
+  line-height: 0.9;
+  color: #fff;
+  letter-spacing: -0.03em;
 }
-
-.level-select-sub {
+.config-sub {
   font-family: var(--font-ui);
-  font-size: 0.85rem;
-  font-weight: 400;
+  font-size: 0.88rem;
   color: var(--text-dim);
-  max-width: 540px;
+  margin-top: 10px;
 }
 
-.level-choice-grid {
+.config-section {
+  width: 100%;
+  max-width: 800px;
+}
+.config-label {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.config-label-icon { font-size: 0.85rem; }
+
+/* ── Choice cards (both rows) ─────────────── */
+.cfg-choices {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  flex: 1;
-  min-height: 0;
+  gap: 10px;
 }
 
-.level-choice {
-  padding: 44px 48px;
-  border-right: 1px solid var(--rule);
+.cfg-choice {
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 18px 20px 20px;
   cursor: pointer;
-  background: none;
-  border-top: none;
-  border-bottom: none;
-  border-left: none;
   text-align: left;
-  color: inherit;
+  color: var(--text);
   display: flex;
   flex-direction: column;
-  transition: background 0.2s;
+  gap: 5px;
+  transition: background 0.18s, border-color 0.18s, box-shadow 0.18s, transform 0.14s;
   position: relative;
   overflow: hidden;
 }
-.level-choice:last-child { border-right: none; }
-.level-choice:hover  { background: rgba(255,255,255,0.028); }
-.level-choice:focus  { outline: 2px solid var(--accent); outline-offset: -2px; }
-
-.level-choice-stars {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
+.cfg-choice:hover {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.18);
+  transform: translateY(-1px);
+}
+.cfg-choice.active {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 6px 24px rgba(0,0,0,0.3);
+}
+.cfg-choice.active::before {
+  content: '✓';
+  position: absolute;
+  top: 10px; right: 14px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-family: var(--font-ui);
   color: var(--accent);
-  letter-spacing: -2px;
-  display: block;
 }
 
-.level-choice-name {
+.cfg-choice-badge {
+  font-size: 0.95rem;
+  color: var(--accent);
+  letter-spacing: -1px;
+  display: block;
+  margin-bottom: 4px;
+}
+.cfg-choice-name {
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 900;
-  font-size: clamp(2.8rem, 4.5vw, 5rem);
-  line-height: 0.88;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  line-height: 0.9;
   color: #fff;
-  letter-spacing: -0.03em;
-  margin-bottom: 14px;
-  display: block;
-}
-
-.level-choice-desc {
-  font-family: var(--font-ui);
-  font-size: 0.88rem;
-  font-weight: 400;
-  color: var(--text-dim);
-  line-height: 1.65;
-  flex: 1;
-}
-
-.level-choice-example {
-  font-family: var(--font-ui);
-  font-weight: 800;
-  font-size: 1.4rem;
-  color: var(--accent);
-  margin-top: 24px;
   letter-spacing: -0.02em;
   display: block;
 }
-
-/* Ghost number */
-.level-choice::after {
-  content: attr(data-ghost);
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-style: italic;
-  font-size: 14rem;
-  line-height: 1;
-  color: rgba(255,255,255,0.018);
-  position: absolute;
-  bottom: -40px;
-  right: -20px;
-  pointer-events: none;
+.cfg-choice-desc {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+  display: block;
+  margin-top: 2px;
 }
-.level-choice:hover::after { color: rgba(255,255,255,0.036); }
+.cfg-choice-example {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--accent);
+  margin-top: 10px;
+  letter-spacing: -0.01em;
+  display: block;
+}
+
+/* Story choices: 3 columns, no example row */
+.story-choices .cfg-choice { padding: 16px 20px 18px; }
+
+/* ── Start button ─────────────────────────── */
+.start-btn {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 1rem;
+  padding: 16px 52px;
+  border-radius: 50px;
+  border: none;
+  cursor: not-allowed;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.3);
+  transition: all 0.25s;
+  letter-spacing: 0.01em;
+}
+.start-btn.ready {
+  background: var(--btn);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+}
+.start-btn.ready:hover {
+  background: var(--btn-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 36px rgba(0,0,0,0.45);
+}
+.start-btn.ready:active {
+  transform: translateY(0);
+}
+
+/* ── Story bonus paragraph (Dyb mode) ──────── */
+.story-bonus {
+  border-left: 2px solid var(--accent);
+  padding-left: 14px;
+  color: rgba(255,255,255,0.55) !important;
+  font-style: italic;
+  margin-top: 4px;
+  opacity: 0;
+  animation: bonus-in 0.5s 0.2s ease both;
+}
+@keyframes bonus-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
 
 /* ============================================
    RESPONSIVE
@@ -952,15 +1003,11 @@ body[data-theme="football"]::before {
   .theme-bar:nth-child(4n) { border-right: 1px solid var(--rule); }
   .theme-bar:nth-child(2n) { border-right: none; }
 
-  /* Level select: stack */
-  .level-choice-grid { grid-template-columns: 1fr; overflow-y: auto; }
-  .level-choice      { border-right: none; border-bottom: 1px solid var(--rule); padding: 28px 32px; flex-direction: row; align-items: center; gap: 24px; }
-  .level-choice-stars { margin-bottom: 0; font-size: 1.1rem; min-width: 48px; }
-  .level-choice-name  { font-size: 2rem; margin-bottom: 0; flex-shrink: 0; }
-  .level-choice-desc  { font-size: 0.82rem; }
-  .level-choice-example { margin-top: 0; margin-left: auto; font-size: 1.1rem; }
-  .level-choice::after { display: none; }
-  .level-select-hero  { padding: 44px 28px 28px; }
+  /* Config screen: stack choice cards */
+  .cfg-choices { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .cfg-choice  { padding: 14px 14px 16px; }
+  .cfg-choice-name { font-size: 1.4rem; }
+  .config-panel { gap: 24px; padding: 24px 16px 36px; }
 }
 
 /* ── Mobile ─── */
