@@ -1434,7 +1434,7 @@ function renderHome() {
       <div class="home-hero">
         <span class="home-eyebrow">4. klasse · matematik · 8 universer</span>
         <h1 class="home-title">
-          <span class="line1">4Y's</span>
+          <span class="line1">4klasses</span>
           <span class="line2">Regnemaskine<span class="beta-badge">BETA</span></span>
         </h1>
         <span class="home-sub">Vælg dit univers — og løs de ti koder</span>
