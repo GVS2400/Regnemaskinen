@@ -196,60 +196,318 @@ function applyTemplate(tmpl, vars) {
 }
 
 // ── SHARED MATH DATA ─────────────────────────
-// 10 chapter types × 3 difficulty levels (Nem / Mellem / Svær)
+// 10 chapter types × 4 difficulty levels × 5 variants
+// Access: MATH[type][level][variantIdx]   level: 0=Nem 1=Mellem 2=Svær 3=Nørd
 
 const MATH = {
-  plus:    [
-    { vars: { n1: 35,  n2: 29  }, ans: '64'  },
-    { vars: { n1: 48,  n2: 36  }, ans: '84'  },
-    { vars: { n1: 186, n2: 247 }, ans: '433' }
+  plus: [
+    [ // Nem
+      { vars: { n1: 35,  n2: 29  }, ans: '64'  },
+      { vars: { n1: 24,  n2: 38  }, ans: '62'  },
+      { vars: { n1: 43,  n2: 26  }, ans: '69'  },
+      { vars: { n1: 17,  n2: 52  }, ans: '69'  },
+      { vars: { n1: 31,  n2: 47  }, ans: '78'  }
+    ],
+    [ // Mellem
+      { vars: { n1: 48,  n2: 36  }, ans: '84'  },
+      { vars: { n1: 57,  n2: 38  }, ans: '95'  },
+      { vars: { n1: 64,  n2: 49  }, ans: '113' },
+      { vars: { n1: 73,  n2: 28  }, ans: '101' },
+      { vars: { n1: 45,  n2: 67  }, ans: '112' }
+    ],
+    [ // Svær
+      { vars: { n1: 186, n2: 247 }, ans: '433' },
+      { vars: { n1: 254, n2: 178 }, ans: '432' },
+      { vars: { n1: 367, n2: 145 }, ans: '512' },
+      { vars: { n1: 429, n2: 263 }, ans: '692' },
+      { vars: { n1: 534, n2: 289 }, ans: '823' }
+    ],
+    [ // Nørd
+      { vars: { n1: 2847, n2: 1594 }, ans: '4441'  },
+      { vars: { n1: 3628, n2: 2475 }, ans: '6103'  },
+      { vars: { n1: 4953, n2: 3287 }, ans: '8240'  },
+      { vars: { n1: 5174, n2: 2836 }, ans: '8010'  },
+      { vars: { n1: 6293, n2: 4718 }, ans: '11011' }
+    ]
   ],
-  minus:   [
-    { vars: { n1: 80,  n2: 23  }, ans: '57'  },
-    { vars: { n1: 120, n2: 47  }, ans: '73'  },
-    { vars: { n1: 300, n2: 134 }, ans: '166' }
+  minus: [
+    [ // Nem
+      { vars: { n1: 80,  n2: 23  }, ans: '57' },
+      { vars: { n1: 74,  n2: 31  }, ans: '43' },
+      { vars: { n1: 63,  n2: 28  }, ans: '35' },
+      { vars: { n1: 91,  n2: 47  }, ans: '44' },
+      { vars: { n1: 85,  n2: 36  }, ans: '49' }
+    ],
+    [ // Mellem
+      { vars: { n1: 120, n2: 47  }, ans: '73' },
+      { vars: { n1: 135, n2: 68  }, ans: '67' },
+      { vars: { n1: 154, n2: 83  }, ans: '71' },
+      { vars: { n1: 147, n2: 59  }, ans: '88' },
+      { vars: { n1: 163, n2: 74  }, ans: '89' }
+    ],
+    [ // Svær
+      { vars: { n1: 300, n2: 134 }, ans: '166' },
+      { vars: { n1: 425, n2: 178 }, ans: '247' },
+      { vars: { n1: 512, n2: 247 }, ans: '265' },
+      { vars: { n1: 634, n2: 289 }, ans: '345' },
+      { vars: { n1: 751, n2: 368 }, ans: '383' }
+    ],
+    [ // Nørd
+      { vars: { n1: 5000, n2: 2847 }, ans: '2153' },
+      { vars: { n1: 7214, n2: 3867 }, ans: '3347' },
+      { vars: { n1: 8523, n2: 4796 }, ans: '3727' },
+      { vars: { n1: 6341, n2: 2958 }, ans: '3383' },
+      { vars: { n1: 9000, n2: 4637 }, ans: '4363' }
+    ]
   ],
-  gange:   [
-    { vars: { n1: 4, n2: 6  }, ans: '24'  },
-    { vars: { n1: 8, n2: 6  }, ans: '48'  },
-    { vars: { n1: 9, n2: 12 }, ans: '108' }
+  gange: [
+    [ // Nem
+      { vars: { n1: 4,  n2: 6  }, ans: '24'  },
+      { vars: { n1: 6,  n2: 4  }, ans: '24'  },
+      { vars: { n1: 5,  n2: 7  }, ans: '35'  },
+      { vars: { n1: 6,  n2: 9  }, ans: '54'  },
+      { vars: { n1: 7,  n2: 4  }, ans: '28'  }
+    ],
+    [ // Mellem
+      { vars: { n1: 8,  n2: 6  }, ans: '48' },
+      { vars: { n1: 7,  n2: 8  }, ans: '56' },
+      { vars: { n1: 9,  n2: 6  }, ans: '54' },
+      { vars: { n1: 6,  n2: 11 }, ans: '66' },
+      { vars: { n1: 8,  n2: 9  }, ans: '72' }
+    ],
+    [ // Svær
+      { vars: { n1: 9,  n2: 12 }, ans: '108' },
+      { vars: { n1: 11, n2: 13 }, ans: '143' },
+      { vars: { n1: 14, n2: 12 }, ans: '168' },
+      { vars: { n1: 13, n2: 11 }, ans: '143' },
+      { vars: { n1: 15, n2: 14 }, ans: '210' }
+    ],
+    [ // Nørd
+      { vars: { n1: 24, n2: 37 }, ans: '888'  },
+      { vars: { n1: 36, n2: 28 }, ans: '1008' },
+      { vars: { n1: 47, n2: 53 }, ans: '2491' },
+      { vars: { n1: 64, n2: 35 }, ans: '2240' },
+      { vars: { n1: 58, n2: 47 }, ans: '2726' }
+    ]
   ],
-  div:     [
-    { vars: { n1: 48,  n2: 4 }, ans: '12' },
-    { vars: { n1: 96,  n2: 4 }, ans: '24' },
-    { vars: { n1: 156, n2: 6 }, ans: '26' }
+  div: [
+    [ // Nem
+      { vars: { n1: 48,  n2: 4 }, ans: '12' },
+      { vars: { n1: 36,  n2: 3 }, ans: '12' },
+      { vars: { n1: 45,  n2: 5 }, ans: '9'  },
+      { vars: { n1: 56,  n2: 7 }, ans: '8'  },
+      { vars: { n1: 42,  n2: 6 }, ans: '7'  }
+    ],
+    [ // Mellem
+      { vars: { n1: 96,  n2: 4  }, ans: '24' },
+      { vars: { n1: 84,  n2: 7  }, ans: '12' },
+      { vars: { n1: 90,  n2: 6  }, ans: '15' },
+      { vars: { n1: 108, n2: 9  }, ans: '12' },
+      { vars: { n1: 72,  n2: 8  }, ans: '9'  }
+    ],
+    [ // Svær
+      { vars: { n1: 156, n2: 6  }, ans: '26' },
+      { vars: { n1: 144, n2: 8  }, ans: '18' },
+      { vars: { n1: 168, n2: 7  }, ans: '24' },
+      { vars: { n1: 195, n2: 5  }, ans: '39' },
+      { vars: { n1: 228, n2: 12 }, ans: '19' }
+    ],
+    [ // Nørd
+      { vars: { n1: 2352, n2: 14 }, ans: '168' },
+      { vars: { n1: 3108, n2: 12 }, ans: '259' },
+      { vars: { n1: 4284, n2: 18 }, ans: '238' },
+      { vars: { n1: 5265, n2: 15 }, ans: '351' },
+      { vars: { n1: 6552, n2: 24 }, ans: '273' }
+    ]
   ],
-  frakof:  [
-    { vars: { frac: '1/3', n1: 30 }, ans: '10' },
-    { vars: { frac: '1/3', n1: 60 }, ans: '20' },
-    { vars: { frac: '3/4', n1: 60 }, ans: '45' }
+  frakof: [
+    [ // Nem
+      { vars: { frac: '1/3', n1: 30 }, ans: '10' },
+      { vars: { frac: '1/4', n1: 20 }, ans: '5'  },
+      { vars: { frac: '1/2', n1: 24 }, ans: '12' },
+      { vars: { frac: '1/5', n1: 25 }, ans: '5'  },
+      { vars: { frac: '1/3', n1: 21 }, ans: '7'  }
+    ],
+    [ // Mellem
+      { vars: { frac: '1/3', n1: 60 }, ans: '20' },
+      { vars: { frac: '2/3', n1: 30 }, ans: '20' },
+      { vars: { frac: '3/4', n1: 40 }, ans: '30' },
+      { vars: { frac: '2/5', n1: 40 }, ans: '16' },
+      { vars: { frac: '1/4', n1: 60 }, ans: '15' }
+    ],
+    [ // Svær
+      { vars: { frac: '3/4',  n1: 60 }, ans: '45' },
+      { vars: { frac: '2/3',  n1: 72 }, ans: '48' },
+      { vars: { frac: '3/5',  n1: 75 }, ans: '45' },
+      { vars: { frac: '5/8',  n1: 64 }, ans: '40' },
+      { vars: { frac: '4/5',  n1: 80 }, ans: '64' }
+    ],
+    [ // Nørd
+      { vars: { frac: '7/8',   n1: 96  }, ans: '84'  },
+      { vars: { frac: '5/6',   n1: 84  }, ans: '70'  },
+      { vars: { frac: '7/9',   n1: 108 }, ans: '84'  },
+      { vars: { frac: '11/12', n1: 120 }, ans: '110' },
+      { vars: { frac: '9/10',  n1: 150 }, ans: '135' }
+    ]
   ],
-  frakp:   [
-    { vars: { f1: '1/5', f2: '2/5'  }, ans: '3/5'  },
-    { vars: { f1: '2/8', f2: '3/8'  }, ans: '5/8'  },
-    { vars: { f1: '4/11', f2: '5/11' }, ans: '9/11' }
+  frakp: [
+    [ // Nem
+      { vars: { f1: '1/5',  f2: '2/5'  }, ans: '3/5'  },
+      { vars: { f1: '1/7',  f2: '3/7'  }, ans: '4/7'  },
+      { vars: { f1: '2/7',  f2: '3/7'  }, ans: '5/7'  },
+      { vars: { f1: '1/9',  f2: '4/9'  }, ans: '5/9'  },
+      { vars: { f1: '3/11', f2: '4/11' }, ans: '7/11' }
+    ],
+    [ // Mellem
+      { vars: { f1: '2/8',  f2: '3/8'  }, ans: '5/8'  },
+      { vars: { f1: '3/10', f2: '4/10' }, ans: '7/10' },
+      { vars: { f1: '2/9',  f2: '5/9'  }, ans: '7/9'  },
+      { vars: { f1: '3/7',  f2: '2/7'  }, ans: '5/7'  },
+      { vars: { f1: '4/11', f2: '3/11' }, ans: '7/11' }
+    ],
+    [ // Svær
+      { vars: { f1: '4/11', f2: '5/11' }, ans: '9/11'  },
+      { vars: { f1: '5/13', f2: '6/13' }, ans: '11/13' },
+      { vars: { f1: '7/15', f2: '6/15' }, ans: '13/15' },
+      { vars: { f1: '8/17', f2: '7/17' }, ans: '15/17' },
+      { vars: { f1: '9/19', f2: '8/19' }, ans: '17/19' }
+    ],
+    [ // Nørd — same denominator, larger numbers, answer reduces
+      { vars: { f1: '7/24',  f2: '11/24' }, ans: '3/4' },
+      { vars: { f1: '5/16',  f2: '7/16'  }, ans: '3/4' },
+      { vars: { f1: '9/20',  f2: '7/20'  }, ans: '4/5' },
+      { vars: { f1: '11/30', f2: '13/30' }, ans: '4/5' },
+      { vars: { f1: '13/36', f2: '11/36' }, ans: '2/3' }
+    ]
   ],
-  omk:     [
-    { vars: { n1: 10, n2: 6  }, ans: '32' },
-    { vars: { n1: 15, n2: 8  }, ans: '46' },
-    { vars: { n1: 24, n2: 13 }, ans: '74' }
+  omk: [
+    [ // Nem
+      { vars: { n1: 10, n2: 6  }, ans: '32' },
+      { vars: { n1: 7,  n2: 4  }, ans: '22' },
+      { vars: { n1: 8,  n2: 5  }, ans: '26' },
+      { vars: { n1: 11, n2: 3  }, ans: '28' },
+      { vars: { n1: 9,  n2: 6  }, ans: '30' }
+    ],
+    [ // Mellem
+      { vars: { n1: 15, n2: 8  }, ans: '46' },
+      { vars: { n1: 12, n2: 9  }, ans: '42' },
+      { vars: { n1: 14, n2: 11 }, ans: '50' },
+      { vars: { n1: 18, n2: 7  }, ans: '50' },
+      { vars: { n1: 16, n2: 10 }, ans: '52' }
+    ],
+    [ // Svær
+      { vars: { n1: 24, n2: 13 }, ans: '74'  },
+      { vars: { n1: 28, n2: 17 }, ans: '90'  },
+      { vars: { n1: 35, n2: 19 }, ans: '108' },
+      { vars: { n1: 42, n2: 23 }, ans: '130' },
+      { vars: { n1: 47, n2: 28 }, ans: '150' }
+    ],
+    [ // Nørd
+      { vars: { n1: 125, n2: 87  }, ans: '424'  },
+      { vars: { n1: 234, n2: 167 }, ans: '802'  },
+      { vars: { n1: 318, n2: 245 }, ans: '1126' },
+      { vars: { n1: 456, n2: 389 }, ans: '1690' },
+      { vars: { n1: 523, n2: 478 }, ans: '2002' }
+    ]
   ],
-  areal:   [
-    { vars: { n1: 8,  n2: 7  }, ans: '56'  },
-    { vars: { n1: 12, n2: 9  }, ans: '108' },
-    { vars: { n1: 18, n2: 14 }, ans: '252' }
+  areal: [
+    [ // Nem
+      { vars: { n1: 8, n2: 7 }, ans: '56' },
+      { vars: { n1: 6, n2: 9 }, ans: '54' },
+      { vars: { n1: 7, n2: 5 }, ans: '35' },
+      { vars: { n1: 9, n2: 4 }, ans: '36' },
+      { vars: { n1: 6, n2: 8 }, ans: '48' }
+    ],
+    [ // Mellem
+      { vars: { n1: 12, n2: 9  }, ans: '108' },
+      { vars: { n1: 11, n2: 10 }, ans: '110' },
+      { vars: { n1: 13, n2: 8  }, ans: '104' },
+      { vars: { n1: 14, n2: 7  }, ans: '98'  },
+      { vars: { n1: 15, n2: 9  }, ans: '135' }
+    ],
+    [ // Svær
+      { vars: { n1: 18, n2: 14 }, ans: '252'  },
+      { vars: { n1: 22, n2: 17 }, ans: '374'  },
+      { vars: { n1: 26, n2: 19 }, ans: '494'  },
+      { vars: { n1: 31, n2: 24 }, ans: '744'  },
+      { vars: { n1: 37, n2: 28 }, ans: '1036' }
+    ],
+    [ // Nørd
+      { vars: { n1: 125, n2: 84  }, ans: '10500'  },
+      { vars: { n1: 163, n2: 97  }, ans: '15811'  },
+      { vars: { n1: 248, n2: 135 }, ans: '33480'  },
+      { vars: { n1: 317, n2: 246 }, ans: '77982'  },
+      { vars: { n1: 425, n2: 368 }, ans: '156400' }
+    ]
   ],
   blandet: [
-    { vars: { n1: 3, n2: 12, n3: 8  }, ans: '44'  },
-    { vars: { n1: 5, n2: 24, n3: 18 }, ans: '138' },
-    { vars: { n1: 8, n2: 35, n3: 24 }, ans: '304' }
+    [ // Nem
+      { vars: { n1: 3, n2: 12, n3: 8  }, ans: '44'  },
+      { vars: { n1: 2, n2: 15, n3: 7  }, ans: '37'  },
+      { vars: { n1: 4, n2: 8,  n3: 6  }, ans: '38'  },
+      { vars: { n1: 3, n2: 9,  n3: 5  }, ans: '32'  },
+      { vars: { n1: 5, n2: 6,  n3: 4  }, ans: '34'  }
+    ],
+    [ // Mellem
+      { vars: { n1: 5, n2: 24, n3: 18 }, ans: '138' },
+      { vars: { n1: 6, n2: 15, n3: 22 }, ans: '112' },
+      { vars: { n1: 7, n2: 12, n3: 16 }, ans: '100' },
+      { vars: { n1: 8, n2: 11, n3: 14 }, ans: '102' },
+      { vars: { n1: 4, n2: 25, n3: 20 }, ans: '120' }
+    ],
+    [ // Svær
+      { vars: { n1: 8,  n2: 35, n3: 24  }, ans: '304'  },
+      { vars: { n1: 9,  n2: 42, n3: 37  }, ans: '415'  },
+      { vars: { n1: 7,  n2: 56, n3: 48  }, ans: '440'  },
+      { vars: { n1: 6,  n2: 63, n3: 55  }, ans: '433'  },
+      { vars: { n1: 11, n2: 48, n3: 63  }, ans: '591'  }
+    ],
+    [ // Nørd
+      { vars: { n1: 24, n2: 137, n3: 284  }, ans: '3572'  },
+      { vars: { n1: 35, n2: 248, n3: 519  }, ans: '9199'  },
+      { vars: { n1: 47, n2: 365, n3: 728  }, ans: '17883' },
+      { vars: { n1: 56, n2: 427, n3: 893  }, ans: '24805' },
+      { vars: { n1: 63, n2: 528, n3: 1247 }, ans: '34511' }
+    ]
   ],
-  finale:  [
-    { vars: { frac: '1/2', n1: 40,  n2: 10 }, ans: '30' },
-    { vars: { frac: '3/4', n1: 80,  n2: 15 }, ans: '75' },
-    { vars: { frac: '3/5', n1: 100, n2: 20 }, ans: '80' }
+  finale: [
+    [ // Nem
+      { vars: { frac: '1/2', n1: 40,  n2: 10 }, ans: '30' },
+      { vars: { frac: '1/3', n1: 30,  n2: 5  }, ans: '15' },
+      { vars: { frac: '1/4', n1: 24,  n2: 8  }, ans: '14' },
+      { vars: { frac: '1/2', n1: 20,  n2: 7  }, ans: '17' },
+      { vars: { frac: '1/5', n1: 20,  n2: 6  }, ans: '10' }
+    ],
+    [ // Mellem
+      { vars: { frac: '3/4', n1: 80,  n2: 15 }, ans: '75' },
+      { vars: { frac: '2/3', n1: 60,  n2: 18 }, ans: '58' },
+      { vars: { frac: '3/5', n1: 50,  n2: 12 }, ans: '42' },
+      { vars: { frac: '2/5', n1: 100, n2: 20 }, ans: '60' },
+      { vars: { frac: '3/4', n1: 60,  n2: 25 }, ans: '70' }
+    ],
+    [ // Svær
+      { vars: { frac: '3/5', n1: 100, n2: 20 }, ans: '80'  },
+      { vars: { frac: '7/8', n1: 80,  n2: 25 }, ans: '95'  },
+      { vars: { frac: '5/6', n1: 84,  n2: 32 }, ans: '102' },
+      { vars: { frac: '4/5', n1: 120, n2: 36 }, ans: '132' },
+      { vars: { frac: '7/9', n1: 108, n2: 43 }, ans: '127' }
+    ],
+    [ // Nørd
+      { vars: { frac: '11/12', n1: 240, n2: 87  }, ans: '307' },
+      { vars: { frac: '7/8',   n1: 320, n2: 145 }, ans: '425' },
+      { vars: { frac: '13/15', n1: 300, n2: 167 }, ans: '427' },
+      { vars: { frac: '9/11',  n1: 264, n2: 193 }, ans: '409' },
+      { vars: { frac: '5/7',   n1: 378, n2: 214 }, ans: '484' }
+    ]
   ]
 };
+
+// Returns 0–4 — consistent per theme+chapter, different across themes
+function getVariantIdx(themeId, chapterIdx) {
+  const themeOrder = ['kpop','gaming','football','ronaldo','brawlstars','anime','jjk','geography'];
+  const tIdx = Math.max(0, themeOrder.indexOf(themeId));
+  return (tIdx * 7 + chapterIdx * 3) % 5;
+}
 
 // Shared math tip per chapter position (0–9)
 const SHARED_MATH_NOTES = [
@@ -295,6 +553,18 @@ const GAME_DATA = {
 Lyset eksploderede — ikke pænt og velplanlagt, men som om scenen endelig fik lov til at ånde. Tusindvis af armbånd tændte på én gang, alle i takt med musikken. YUNA stoppede midt i et vers og lo bare. Ingenting gik forkert. Alt gik forkert og alligevel rigtigt, på den bedste mulige måde.
 
 Bagefter sendte PARK én besked til hele holdet: »Alle tallene passede. Hvert eneste et.« Det var hans måde at sige tak.`,
+    collectibles: [
+      { name: 'YUNA Photocard',      icon: '💗', desc: 'Signeret bag scenen.' },
+      { name: 'Bang Chans Øvekort',  icon: '📋', desc: 'Det eneste der overlevede ventilatoren.' },
+      { name: 'LILIs Designskitse',  icon: '✏️', desc: 'Aldrig et tal for lidt.' },
+      { name: 'JAKEs Clipboard',     icon: '📎', desc: 'Præcis ét nik per dag.' },
+      { name: 'MINA Fan-Gave',       icon: '👜', desc: 'Lagt ud med forsiden op.' },
+      { name: 'SOL Studio Nøgle',    icon: '🔑', desc: 'Musikken var parat.' },
+      { name: 'PARKs Lysmålebånd',   icon: '📏', desc: 'Præcis til det sidste meter.' },
+      { name: 'Glow-Tæppe',          icon: '✨', desc: 'Smukkere end alle troede.' },
+      { name: 'MIN-JI VIP Pas',      icon: '💳', desc: 'Et sekund i elevatoren.' },
+      { name: 'Hearts2Hearts Scene', icon: '🎭', desc: 'Den nat alle husker.' }
+    ],
     chapters: [
       {
         title: 'Lyset Vågner',
@@ -431,6 +701,18 @@ YUNA kigger ud over rummet fra kulissen og er stille et øjeblik. »Hvor mange e
 Et øjeblik var der ingenting. Bare KODA og det tomme niveau og en ensom cursor der blinkede.
 
 Derefter sagde BYTE: »PIXEL QUEST er fuldført.« En pause der varede lidt længere end nødvendigt. »Du var den bedste kode, jeg har analyseret.« Det var den eneste gang BYTE sagde noget smukt. KODA gemte det.`,
+    collectibles: [
+      { name: 'BYTEs Første Protokol', icon: '💾', desc: '"Godt." Det er første gang.' },
+      { name: 'KODAs Nødskjold',       icon: '🛡️', desc: 'Holdt mod alt.' },
+      { name: 'GLITCHZOR Token',       icon: '👾', desc: 'Bevis for at have stået imod.' },
+      { name: 'Guld-Gem Kiste',        icon: '💎', desc: 'Den lukkede sig retfærdigt.' },
+      { name: 'Hemmelig Formel #47',   icon: '📜', desc: 'Den vigtigste formel.' },
+      { name: 'Energikrystal',         icon: '⚡', desc: 'Grønt for første gang i timer.' },
+      { name: 'Platform Master Badge', icon: '🏗️', desc: 'Genopbygget fra bunden.' },
+      { name: 'Diamant Fundament',     icon: '💠', desc: '"Perfekt." Første gang.' },
+      { name: 'Legendary Quest Badge', icon: '🏅', desc: 'Det lille quest. Det vigtigste.' },
+      { name: 'VORTEXs Øje',          icon: '👁️', desc: 'Hvad så det, inden det faldt?' }
+    ],
     chapters: [
       {
         title: 'Den Første Portal',
@@ -567,6 +849,18 @@ KODA kiggede på VORTEX. Løftede våbnet.`,
 Bolden gik i nettet med en lyd, som ingen hørte, fordi alle skreg.
 
 Bagefter satte MIKKEL sig alene på det tomme stadion og kiggede ud på den grønne bane en lang tid. Til sidst sagde han stille: »Det var godt regnet.« DITTE hørte det. Hun sagde det videre.`,
+    collectibles: [
+      { name: 'FCK Kampprogram',      icon: '📰', desc: 'Den nat tribunen bruste.' },
+      { name: 'Billet #1',            icon: '🎫', desc: 'Til den der ventede fra kl. 7.' },
+      { name: 'MIKKELs Træningsplan', icon: '📋', desc: 'Session 3 har to streger under.' },
+      { name: 'Statistikbog',         icon: '📊', desc: 'En kopi tages altid med hjem.' },
+      { name: 'Tackle-Video',         icon: '🎞️', desc: 'Det 13. minut. Igen og igen.' },
+      { name: 'FREJs GPS-ur',         icon: '⌚', desc: '0,5 sekunder inden.' },
+      { name: 'OSCARs Hansker',       icon: '🧤', desc: 'Klar klokken 14.37.' },
+      { name: 'FCK Banegodkendelse',  icon: '🏟️', desc: 'Et nyt kapitel.' },
+      { name: 'Topscorerpokal',       icon: '🏆', desc: 'En historisk sæson.' },
+      { name: 'Straffesparksbolden',  icon: '⚽', desc: 'LUCAS sparkede. FCK vandt.' }
+    ],
     chapters: [
       {
         title: 'Stadionets Brus',
@@ -699,6 +993,18 @@ Den slags stilling, der siger: intet er afgjort. Alt er stadig muligt. Det er de
 Cristiano løftede trofæet. Blitzene eksploderede. JORGE nikkede med lukkede øjne, som en der vidste det hele vejen.
 
 Hvert tal i denne fortælling er rigtigt. Hvert mål er sandt. Og rekorden tilhører nu jer begge.`,
+    collectibles: [
+      { name: 'CR7 Morgenprogram',     icon: '📋', desc: 'Klokken 6.23. Det første tæller.' },
+      { name: 'JORGEs Notesbog',       icon: '📓', desc: 'Bundlinjen tom — til det næste.' },
+      { name: 'Boldkontrol Rekord',    icon: '⚽', desc: 'Den 108. er altid den bedste.' },
+      { name: 'Champions League Trofæ',icon: '🏆', desc: 'Pakket med mest omhu.' },
+      { name: 'Heading Rekord',        icon: '🏅', desc: 'Tredive meters løb. Ingen filmede.' },
+      { name: '"Komplet"-Stempel',     icon: '✅', desc: 'RAMOS sagde det én gang.' },
+      { name: 'Privatbane Nøgle',      icon: '🔑', desc: 'Hegnet kom op. Han var på banen.' },
+      { name: 'Kunstgræs Certifikat',  icon: '📜', desc: 'Leveret præcis til tiden.' },
+      { name: 'UCL Rekord Plaque',     icon: '🌟', desc: 'Det sidst fundne vejer tungest.' },
+      { name: 'Kaptajnsbindet',        icon: '💛', desc: 'Han var allerede der.' }
+    ],
     chapters: [
       {
         title: 'Morgenens Første Mål',
@@ -833,6 +1139,18 @@ RAMOS kiggede på Cristiano. Cristiano kiggede på banen. »Hvad er vores samled
 Shelly grinte og græd på samme tid, fordi man godt kan begge dele. Spike talte sine resterende power-ups, fordi han ikke vidste hvad han ellers skulle gøre med sine hænder. Mortis holdt en tale, som ingen lyttede til, men som alle nok trængte til.
 
 Og Crow — Crow, der aldrig viste noget — stod midt i arenaen med konfetti i håret og smilede. Bare ét sekund. Men det var nok.`,
+    collectibles: [
+      { name: 'Crows Pointprotokol',    icon: '🖤', desc: 'Hans version af et smil.' },
+      { name: 'Spikes Gem-Kasse',       icon: '🌵', desc: 'Tjekket to gange ekstra.' },
+      { name: 'Mortis Spadestok Pin',   icon: '💀', desc: 'Angreb nr. 248.' },
+      { name: '"Fair Fordeling" Badge', icon: '⚖️', desc: 'Ingen favoritter.' },
+      { name: 'Leons Power-Up',         icon: '👻', desc: 'Den bedste, ikke den stærkeste.' },
+      { name: 'Shellys Kamprapport',    icon: '📊', desc: 'Crow læser den mest.' },
+      { name: 'Kaktus Forsvarsplan',    icon: '🌿', desc: 'Sydøsthjørnet altid først.' },
+      { name: 'Arena Grundsten',        icon: '🪨', desc: 'Shelly lagde den første.' },
+      { name: 'Verdensfinale Adgang',   icon: '🎟️', desc: 'Udsolgt.' },
+      { name: 'Verdensmester Trofæ',    icon: '🏆', desc: '"Jeg sagde det!" – Leon' }
+    ],
     chapters: [
       {
         title: 'Trofæ-Jagten Begynder',
@@ -969,6 +1287,18 @@ Crow stod alene i gangen bag arenaen og talte. Ikke for nogen. Bare fordi tallen
 »Det er det samme,« sagde Luffy og spiste tre riceballs.
 
 Kakashi stod lidt væk og kiggede på dem. Han sagde ingenting. Det behøvede han ikke. Du løste alle ti koder — fra den første chakra til det afgørende slag. Heltene overlevede, fordi tallene passede. Det er hemmeligheden bag enhver kamp.`,
+    collectibles: [
+      { name: 'Portal-Nøglen',           icon: '🚪', desc: '"GODT!" – Luffy. Fuld analyse.' },
+      { name: 'Rayleighs Skema',         icon: '📜', desc: 'Luffy regnede igen. Rigtigt.' },
+      { name: 'Kakashis Stjerne',        icon: '⭐', desc: 'Den eneste, nogensinde.' },
+      { name: 'Irukas Teknikoversigt',   icon: '📋', desc: 'Alle er med. Ingen glemt.' },
+      { name: 'Super Saiyan Certifikat', icon: '⚡', desc: 'Gohan gemte øjeblikket.' },
+      { name: 'Kampanalyse-Vest',        icon: '👘', desc: 'Kakashi beholder den.' },
+      { name: 'Konoha Patrulje-Orden',   icon: '🌿', desc: 'Præcis til forventet tid.' },
+      { name: 'Hokages Underskrift',     icon: '📜', desc: 'Noget nyt begynder.' },
+      { name: 'Den Rigtige Bænkbillet',  icon: '🎫', desc: 'Bænken ved siden af Sasuke.' },
+      { name: '"Nok"-Medaljen',          icon: '🎖️', desc: 'De sværeste ord at sige.' }
+    ],
     chapters: [
       {
         title: 'Tre Helte Mødes',
@@ -1103,6 +1433,18 @@ Kakashi talte op stille. »Vi skal vide vores samlede styrke,« sagde han. »Ind
 Yuji landede på gadebrostenene og slog knæene. Megumi kom løbende og sagde ingenting, men rakte hånden ud. Nobara sagde: »Jeg vidste det godt.« Det var hendes måde at sige: jeg var bange hele vejen igennem.
 
 Gojo stod på taget ovenover og kiggede ned. Han smilede bag sit bind — men denne gang var smilet anderledes. Det lignede stolthed. »Tallene passede,« sagde han til vinden. »Det gør de altid, når man tror på dem.«`,
+    collectibles: [
+      { name: 'Forseglet Dør Mærke',  icon: '🔮', desc: 'Den trak vejret. Ikke muligt.' },
+      { name: 'Nobaras Tomme Kasse',  icon: '📦', desc: 'Nok. Det er venskab.' },
+      { name: 'Nanamis Kafferest',    icon: '☕', desc: 'Kaffe i et rysterum.' },
+      { name: 'YAGAs Whiteboard',     icon: '📋', desc: 'Diagrammet stod — så rigtigt ud.' },
+      { name: 'Divergent Fist Mærke', icon: '👊', desc: 'Hold den inde. Sværeste øvelse.' },
+      { name: 'Nanamis Rapport',      icon: '📄', desc: 'Aldrig læst igen. Altid gemt.' },
+      { name: 'Barriere-Certifikat',  icon: '🛡️', desc: 'Lød som ingenting. Sad rigtigt.' },
+      { name: 'YAGAs Notesbog',       icon: '📓', desc: 'Et minut for sent er advarsel.' },
+      { name: 'Ny Sorcerer Badge',    icon: '✨', desc: 'Mange til at bære ansvaret.' },
+      { name: 'Sukunas Knuste Segl',  icon: '💜', desc: 'Gojo kom ned. Sagde intet.' }
+    ],
     chapters: [
       {
         title: 'Den Forseglede Dør',
@@ -1239,6 +1581,18 @@ Sukuna er ikke som de andre cursed spirits. Han er ikke bange. Han venter bare �
 Mormors landsby. Nedsænket da dæmningen blev bygget for fyrre år siden. Det var ikke et skattekort. Det var en sti, nogen havde tegnet tilbage til et hjem, der ikke eksisterer mere.
 
 ANDERS lagde hånden på hendes skulder og sagde ingenting. CAMILLA, embedsmanden der havde forsøgt at stoppe dem hele vejen, sagde til sidst: »Det er min families landsby også.« Det var det eneste hun sagde. Og det var nok.`,
+    collectibles: [
+      { name: 'Halvt Kort',            icon: '🗺️', desc: 'Lande forstår sig via hinanden.' },
+      { name: 'Bjergsti-Markering',    icon: '🏔️', desc: 'Første gang ANDERS sagde "vi".' },
+      { name: 'Provinsbyernes Liste',  icon: '🏙️', desc: 'Det sidst koordinat var ukendt.' },
+      { name: 'CAMILLAs Dekret',       icon: '📜', desc: 'Hun kiggede lidt for længe.' },
+      { name: 'Fredsskovens Kort',     icon: '🌳', desc: 'Fodnoten sluttede midt i.' },
+      { name: 'ANDERS pegestok',       icon: '📍', desc: '"Alle steder er forbundne."' },
+      { name: 'Grænselinje Kort',      icon: '🗺️', desc: 'Han kendte kortet. Nu ved Sofia.' },
+      { name: 'UNESCO Ansøgning 1984', icon: '📰', desc: 'Den eneste artikel. Nogensinde.' },
+      { name: 'Vejnetværk Diagram',    icon: '🛤️', desc: 'ANDERS vidste. Han ventede.' },
+      { name: 'Ekspeditionsmærke',     icon: '🧭', desc: 'Kortet tæt mod hjertet.' }
+    ],
     chapters: [
       {
         title: 'Kortet i Loftet',
@@ -1355,24 +1709,141 @@ Sofia talte dem op stille og sagde ingenting om, hvad hun troede de ville finde.
 
 };
 
+// ── SOUND ─────────────────────────────────────
+
+let _audioCtx = null;
+
+function _getCtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return _audioCtx;
+}
+
+function playSound(type) {
+  if (!state.soundEnabled) return;
+  try {
+    const ctx = _getCtx();
+    const t   = ctx.currentTime;
+
+    if (type === 'complete') {
+      // Victory fanfare — five separate notes
+      [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.25, t + i * 0.12);
+        g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.12 + 0.4);
+        o.start(t + i * 0.12); o.stop(t + i * 0.12 + 0.5);
+      });
+      return;
+    }
+
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+
+    if (type === 'correct') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, t);
+      osc.frequency.setValueAtTime(659.25, t + 0.10);
+      osc.frequency.setValueAtTime(783.99, t + 0.20);
+      gain.gain.setValueAtTime(0.28, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+      osc.start(t); osc.stop(t + 0.6);
+
+    } else if (type === 'perfect') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(659.25, t);
+      osc.frequency.setValueAtTime(783.99, t + 0.08);
+      osc.frequency.setValueAtTime(1046.5, t + 0.16);
+      osc.frequency.setValueAtTime(1318.5, t + 0.24);
+      gain.gain.setValueAtTime(0.30, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
+      osc.start(t); osc.stop(t + 0.70);
+
+    } else if (type === 'wrong') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, t);
+      osc.frequency.exponentialRampToValueAtTime(100, t + 0.22);
+      gain.gain.setValueAtTime(0.18, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+      osc.start(t); osc.stop(t + 0.30);
+
+    } else if (type === 'collect') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880,  t);
+      osc.frequency.setValueAtTime(1108, t + 0.12);
+      osc.frequency.setValueAtTime(1320, t + 0.24);
+      osc.frequency.setValueAtTime(1760, t + 0.36);
+      gain.gain.setValueAtTime(0.20, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
+      osc.start(t); osc.stop(t + 0.70);
+
+    } else if (type === 'click') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, t);
+      osc.frequency.exponentialRampToValueAtTime(600, t + 0.06);
+      gain.gain.setValueAtTime(0.10, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+      osc.start(t); osc.stop(t + 0.10);
+    }
+  } catch (e) { /* Audio unsupported */ }
+}
+
+function toggleSound() {
+  state.soundEnabled = !state.soundEnabled;
+  try { localStorage.setItem('regneparty_sound', state.soundEnabled ? '1' : '0'); } catch (e) {}
+  const btn = document.getElementById('sound-btn');
+  if (btn) btn.textContent = state.soundEnabled ? '🔊' : '🔇';
+  if (state.soundEnabled) playSound('click');
+}
+
 // ── STATE ─────────────────────────────────────
 
 const state = {
   screen: 'home',            // 'home' | 'level-select' | 'chapter' | 'complete'
   theme: null,
   chapter: 0,
-  selectedLevel: null,       // 0=Nem 1=Mellem 2=Svær — math difficulty
+  selectedLevel: null,       // 0=Nem 1=Mellem 2=Svær 3=Nørd — math difficulty
   selectedStoryLevel: null,  // 0=Kort 1=Normal 2=Dyb — story reading depth
   answered: false,
   hintOpen: false,
   wrongCount: 0,
-  progress: loadProgress()
+  streak: 0,
+  sessionScore: 0,
+  soundEnabled: (typeof localStorage !== 'undefined' && localStorage.getItem('regneparty_sound') === '0') ? false : true,
+  progress: loadProgress(),
+  collected: loadCollected()
 };
+
+// Progress shape: { themeId: { chapter, bestLevel, lastLevel, lastStoryLevel } }
+function blankProgress() {
+  return { chapter: 0, bestLevel: null, lastLevel: null, lastStoryLevel: null };
+}
+function getThemeProgress(themeId) {
+  return state.progress[themeId] || blankProgress();
+}
+function saveThemeProgress(themeId, patch) {
+  const cur = getThemeProgress(themeId);
+  const merged = { ...cur, ...patch };
+  if (patch.bestLevel !== undefined) {
+    merged.bestLevel = (cur.bestLevel === null || patch.bestLevel > cur.bestLevel)
+      ? patch.bestLevel : cur.bestLevel;
+  }
+  state.progress[themeId] = merged;
+  saveProgress();
+}
 
 function loadProgress() {
   try {
     const raw = localStorage.getItem('regneparty_progress');
-    return raw ? JSON.parse(raw) : {};
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    const out = {};
+    for (const [k, v] of Object.entries(parsed)) {
+      out[k] = typeof v === 'number'
+        ? { chapter: v, bestLevel: null, lastLevel: null, lastStoryLevel: null }
+        : { chapter: 0, bestLevel: null, lastLevel: null, lastStoryLevel: null, ...v };
+    }
+    return out;
   } catch (e) { return {}; }
 }
 
@@ -1381,51 +1852,95 @@ function saveProgress() {
   catch (e) { /* ignore */ }
 }
 
+function loadCollected() {
+  try {
+    const raw = localStorage.getItem('regneparty_collected');
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch (e) { return new Set(); }
+}
+
+function saveCollected() {
+  try {
+    localStorage.setItem('regneparty_collected', JSON.stringify([...state.collected]));
+  } catch (e) { /* ignore */ }
+}
+
 // ── RENDER ────────────────────────────────────
 
 function render() {
   const app = document.getElementById('app');
   document.body.dataset.theme = state.theme || '';
 
-  if (state.screen === 'home') {
-    clearDecorations();
-    app.innerHTML = renderHome();
-  } else if (state.screen === 'level-select') {
-    clearDecorations();
-    app.innerHTML = renderLevelSelect();
-  } else if (state.screen === 'chapter') {
-    app.innerHTML = renderChapter();
-    addDecorations(state.theme);
+  const doRender = () => {
+    if (state.screen === 'home') {
+      clearDecorations();
+      app.innerHTML = renderHome();
+    } else if (state.screen === 'level-select') {
+      clearDecorations();
+      app.innerHTML = renderLevelSelect();
+    } else if (state.screen === 'chapter') {
+      app.innerHTML = renderChapter();
+      addDecorations(state.theme);
+      requestAnimationFrame(() => {
+        const input = document.getElementById('answer-input');
+        if (input && !state.answered) input.focus();
+      });
+    } else if (state.screen === 'complete') {
+      app.innerHTML = renderComplete();
+      addDecorations(state.theme);
+      setTimeout(() => { triggerConfetti(); playSound('complete'); }, 400);
+    }
     requestAnimationFrame(() => {
-      const input = document.getElementById('answer-input');
-      if (input && !state.answered) input.focus();
+      app.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+      app.style.opacity    = '1';
+      app.style.transform  = 'translateY(0)';
     });
-  } else if (state.screen === 'complete') {
-    app.innerHTML = renderComplete();
-    addDecorations(state.theme);
-    setTimeout(triggerConfetti, 400);
+  };
+
+  if (app.innerHTML.trim()) {
+    app.style.transition = 'opacity 0.14s ease, transform 0.14s ease';
+    app.style.opacity    = '0';
+    app.style.transform  = 'translateY(8px)';
+    setTimeout(doRender, 145);
+  } else {
+    doRender();
   }
 }
 
 function renderHome() {
+  const levelNames = ['Nem','Mellem','Svær','Nørd'];
   const bars = Object.values(GAME_DATA).map((theme, idx) => {
-    const done = state.progress[theme.id] || 0;
+    const p    = getThemeProgress(theme.id);
+    const done = p.chapter;
     let progressLabel = '';
-    if (done >= 10)    progressLabel = `<span class="theme-bar-progress done">✓ Færdig!</span>`;
-    else if (done > 0) progressLabel = `<span class="theme-bar-progress">Kapitel ${done + 1} / 10</span>`;
-    else               progressLabel = `<span class="theme-bar-progress">Nyt eventyr</span>`;
+    if (done >= 10) {
+      const lvlStr = p.bestLevel !== null ? ` · ${levelNames[p.bestLevel]}` : '';
+      progressLabel = `<span class="theme-bar-progress done">✓ Færdig${lvlStr}!</span>`;
+    } else if (done > 0) {
+      progressLabel = `<span class="theme-bar-progress">Kapitel ${done + 1} / 10</span>`;
+    } else {
+      progressLabel = `<span class="theme-bar-progress">Nyt eventyr</span>`;
+    }
+
+    const numCollected = Array.from({ length: 10 }, (_, i) => state.collected.has(`${theme.id}_${i}`)).filter(Boolean).length;
+    const collectLabel = numCollected > 0
+      ? `<span class="theme-bar-collect">${numCollected}/10 ✦</span>`
+      : '';
 
     return `
       <button class="theme-bar ${theme.id}" data-action="select-theme" data-payload="${theme.id}" data-n="${idx + 1}" aria-label="Vælg ${theme.name}">
         <span class="theme-bar-icon">${theme.icon}</span>
         <span class="theme-bar-name">${theme.name}</span>
         <span class="theme-bar-tagline">${theme.tagline}</span>
-        ${progressLabel}
+        ${progressLabel}${collectLabel}
       </button>`;
   }).join('');
 
+  const soundIcon = state.soundEnabled ? '🔊' : '🔇';
+
   return `
     <div class="home-screen">
+      <button class="sound-btn" id="sound-btn" data-action="toggle-sound" title="Lyd til/fra">${soundIcon}</button>
       <div class="home-orbs" aria-hidden="true">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
@@ -1452,9 +1967,10 @@ function renderLevelSelect() {
     .join('');
 
   const mathOpts = [
-    { stars: '★',   name: 'Nem',    desc: 'Mindre tal — samme historier', ex: `${MATH.plus[0].vars.n1} + ${MATH.plus[0].vars.n2} = ?` },
-    { stars: '★★',  name: 'Mellem', desc: 'De originale tal fra historien', ex: `${MATH.plus[1].vars.n1} + ${MATH.plus[1].vars.n2} = ?` },
-    { stars: '★★★', name: 'Svær',   desc: 'Store tal og krævende brøker', ex: `${MATH.plus[2].vars.n1} + ${MATH.plus[2].vars.n2} = ?` }
+    { stars: '★',    name: 'Nem',   desc: 'Mindre tal — god til at starte',  ex: `${MATH.plus[0][0].vars.n1} + ${MATH.plus[0][0].vars.n2} = ?` },
+    { stars: '★★',   name: 'Mellem',desc: 'De originale tal fra historien',  ex: `${MATH.plus[1][0].vars.n1} + ${MATH.plus[1][0].vars.n2} = ?` },
+    { stars: '★★★',  name: 'Svær',  desc: 'Store tal og krævende brøker',   ex: `${MATH.plus[2][0].vars.n1} + ${MATH.plus[2][0].vars.n2} = ?` },
+    { stars: '★★★★', name: 'Nørd',  desc: 'Ekstra svær — til de skarpeste', ex: `${MATH.plus[3][0].vars.n1} + ${MATH.plus[3][0].vars.n2} = ?` }
   ];
   const storyOpts = [
     { icon: '✦',  name: 'Kort',   desc: 'En hurtig bid. God til at komme hurtigt i gang.' },
@@ -1501,7 +2017,7 @@ function renderLevelSelect() {
           <div class="config-label">
             <span class="config-label-icon">🔢</span> Regnelevel
           </div>
-          <div class="cfg-choices">${mathChoices}</div>
+          <div class="cfg-choices math-choices">${mathChoices}</div>
         </div>
 
         <div class="config-section">
@@ -1530,11 +2046,12 @@ function renderProgressDots(currentIdx) {
 function renderChapter() {
   const theme    = GAME_DATA[state.theme];
   const ch       = theme.chapters[state.chapter];
-  const mathData = MATH[ch.lvlData][state.selectedLevel];
+  const variantIdx = getVariantIdx(state.theme, ch.idx);
+  const mathData = MATH[ch.lvlData][state.selectedLevel][variantIdx];
   const isLast   = state.chapter === 9;
   const n        = state.chapter + 1;
-  const stars      = ['★', '★★', '★★★'][state.selectedLevel];
-  const levelName  = ['Nem', 'Mellem', 'Svær'][state.selectedLevel];
+  const stars      = ['★', '★★', '★★★', '★★★★'][state.selectedLevel];
+  const levelName  = ['Nem', 'Mellem', 'Svær', 'Nørd'][state.selectedLevel];
   const storyLabel = ['Kort', 'Normal', 'Dyb'][state.selectedStoryLevel ?? 1];
   const nextLabel = isLast ? 'Se afslutningen →' : 'Næste kapitel →';
 
@@ -1578,7 +2095,7 @@ function renderChapter() {
       <!-- Topbar — spans both columns -->
       <div class="chapter-topbar">
         <button class="back-btn" data-action="go-home">← Temaer</button>
-        <span class="ch-meta">KAPITEL ${n} AF 10 &nbsp;·&nbsp; ${theme.icon} ${theme.name} &nbsp;·&nbsp; ${stars} ${levelName} &nbsp;·&nbsp; 📖 ${storyLabel}</span>
+        <span class="ch-meta">KAPITEL ${n} AF 10 &nbsp;·&nbsp; ${theme.icon} ${theme.name} &nbsp;·&nbsp; ${stars} ${levelName} &nbsp;·&nbsp; 📖 ${storyLabel}${state.streak >= 2 ? `&nbsp;·&nbsp;<span class="streak-badge active" id="streak-display">🔥 ${state.streak}</span>` : `<span class="streak-badge hidden" id="streak-display">🔥 ${state.streak}</span>`}</span>
         <div class="progress-dots">${renderProgressDots(state.chapter)}</div>
       </div>
 
@@ -1613,6 +2130,7 @@ function renderChapter() {
           <button type="submit" class="submit-btn" ${state.answered ? 'disabled' : ''}>Tjek svar</button>
         </form>
         <div class="feedback" id="feedback"></div>
+        <div class="answer-explanation" id="answer-explanation"></div>
         <div class="hint-section ${state.hintOpen ? 'open' : ''}" id="hint-section">
           <div class="hint-box">
             <div class="hint-title">Tænkevej</div>
@@ -1622,6 +2140,9 @@ function renderChapter() {
         <div class="card-actions">
           <button class="hint-btn" data-action="toggle-hint" id="hint-btn">
             ${state.hintOpen ? 'Skjul tænkevej' : 'Vis tænkevej'}
+          </button>
+          <button class="skip-btn ${state.wrongCount >= 4 ? 'visible' : ''}" data-action="skip-chapter" id="skip-btn">
+            Vis svaret — ingen collectible
           </button>
           <button class="next-btn ${state.answered ? 'visible' : ''}" data-action="next-chapter" id="next-btn">
             ${nextLabel}
@@ -1640,6 +2161,14 @@ function renderComplete() {
     .map(p => `<p>${p.trim()}</p>`)
     .join('');
 
+  const collGrid = (theme.collectibles || []).map((item, i) => {
+    const collected = state.collected.has(`${state.theme}_${i}`);
+    return `<div class="coll-item ${collected ? 'collected' : 'locked'}" title="${collected ? item.desc : '???'}">
+      <div class="coll-icon">${collected ? item.icon : '❓'}</div>
+      <div class="coll-name">${collected ? item.name : '???'}</div>
+    </div>`;
+  }).join('');
+
   return `
     <div class="complete-screen">
       <div class="complete-left">
@@ -1650,19 +2179,24 @@ function renderComplete() {
         <div class="complete-story">${storyParagraphs}</div>
         <button class="home-btn" data-action="go-home">← Vælg et nyt eventyr</button>
       </div>
+      <div class="complete-collection">
+        <div class="coll-title">Din samling · ${(theme.collectibles || []).filter((_, i) => state.collected.has(`${state.theme}_${i}`)).length}/10 ulåst</div>
+        <div class="coll-grid">${collGrid}</div>
+      </div>
     </div>`;
 }
 
 // ── ACTIONS ───────────────────────────────────
 
 function selectTheme(themeId) {
-  state.theme             = themeId;
-  state.selectedLevel     = null;
-  state.selectedStoryLevel = null;
-  state.answered          = false;
-  state.hintOpen          = false;
-  state.wrongCount        = 0;
-  state.screen            = 'level-select';
+  const p = getThemeProgress(themeId);
+  state.theme              = themeId;
+  state.selectedLevel      = p.lastLevel ?? null;
+  state.selectedStoryLevel = p.lastStoryLevel ?? null;
+  state.answered           = false;
+  state.hintOpen           = false;
+  state.wrongCount         = 0;
+  state.screen             = 'level-select';
   render();
 }
 
@@ -1680,12 +2214,12 @@ function selectStoryLevel(lvl) {
 // Both chosen → launch
 function startAdventure() {
   if (state.selectedLevel === null || state.selectedStoryLevel === null) return;
-  const saved      = state.progress[state.theme] || 0;
-  state.chapter    = saved >= 10 ? 0 : saved;
-  state.answered   = false;
-  state.hintOpen   = false;
-  state.wrongCount = 0;
-  state.screen     = 'chapter';
+  const p        = getThemeProgress(state.theme);
+  state.chapter  = p.chapter >= 10 ? 0 : p.chapter;
+  state.answered = false; state.hintOpen = false; state.wrongCount = 0;
+  state.streak   = 0;     state.sessionScore = 0;
+  state.screen   = 'chapter';
+  saveThemeProgress(state.theme, { lastLevel: state.selectedLevel, lastStoryLevel: state.selectedStoryLevel });
   render();
 }
 
@@ -1697,24 +2231,23 @@ function goHome() {
   state.answered           = false;
   state.hintOpen           = false;
   state.wrongCount         = 0;
+  state.streak             = 0;
+  state.sessionScore       = 0;
   render();
 }
 
 function nextChapter() {
   const next = state.chapter + 1;
   if (next >= 10) {
-    state.progress[state.theme] = 10;
-    saveProgress();
+    saveThemeProgress(state.theme, { chapter: 10, bestLevel: state.selectedLevel });
     state.screen = 'complete';
     render();
   } else {
-    state.progress[state.theme] = next;
-    saveProgress();
+    saveThemeProgress(state.theme, { chapter: next, bestLevel: state.selectedLevel });
     state.chapter    = next;
     state.answered   = false;
     state.hintOpen   = false;
     state.wrongCount = 0;
-    // selectedLevel persists — it's global for the theme session
     render();
   }
 }
@@ -1740,33 +2273,154 @@ function handleAnswerSubmit() {
   const feedback = document.getElementById('feedback');
   if (!input || !feedback || !input.value.trim()) return;
 
-  const ch       = GAME_DATA[state.theme].chapters[state.chapter];
-  const mathData = MATH[ch.lvlData][state.selectedLevel];
+  const ch         = GAME_DATA[state.theme].chapters[state.chapter];
+  const variantIdx = getVariantIdx(state.theme, state.chapter);
+  const mathData   = MATH[ch.lvlData][state.selectedLevel][variantIdx];
 
   if (checkAnswer(input.value, mathData.ans)) {
     state.answered = true;
+    const isPerfect  = (state.wrongCount === 0);
+    state.streak++;
+    state.sessionScore += [10, 20, 35, 60][state.selectedLevel] * (isPerfect ? 2 : 1);
+
     const successMsg = applyTemplate(ch.successMsgTemplate, { ...mathData.vars, answer: mathData.ans });
     input.classList.add('correct');
-    feedback.textContent = '✓ ' + successMsg;
-    feedback.className   = 'feedback success';
-    const nextBtn = document.getElementById('next-btn');
-    if (nextBtn) {
-      nextBtn.classList.add('visible');
-      nextBtn.textContent = state.chapter === 9 ? 'Se afslutningen →' : 'Næste kapitel →';
+    feedback.textContent = (isPerfect ? '⚡ Perfekt! ' : '✓ ') + successMsg;
+    feedback.className   = 'feedback success' + (isPerfect ? ' perfect' : '');
+
+    // Show math explanation
+    const expEl = document.getElementById('answer-explanation');
+    if (expEl) {
+      expEl.innerHTML = `<span class="exp-label">Sådan tænker du det</span>${SHARED_MATH_NOTES[ch.idx]}`;
+      expEl.classList.add('visible');
     }
-    const submitBtn = document.querySelector('.submit-btn');
-    if (submitBtn) submitBtn.disabled = true;
+
+    document.querySelector('.submit-btn')?.setAttribute('disabled', '');
     input.readOnly = true;
+    updateStreakDisplay();
     triggerConfetti();
+    playSound(isPerfect ? 'perfect' : 'correct');
+
+    // Collectible reveal — nextBtn shown after modal dismisses
+    const collectKey = `${state.theme}_${state.chapter}`;
+    if (!state.collected.has(collectKey)) {
+      state.collected.add(collectKey);
+      saveCollected();
+      setTimeout(() => showCollectibleReveal(state.theme, state.chapter, isPerfect), 320);
+    } else {
+      // Already collected on a previous run — just show the next button
+      _showNextBtn();
+    }
   } else {
     state.wrongCount++;
+    state.streak = 0;
+    playSound('wrong');
     input.classList.add('wrong');
     const msg = wrongMessages[(state.wrongCount - 1) % wrongMessages.length];
     feedback.textContent = msg;
     feedback.className   = 'feedback error';
     setTimeout(() => input.classList.remove('wrong'), 360);
     input.select();
+
+    // Auto-open hint after 2 wrong answers
+    if (state.wrongCount === 2 && !state.hintOpen) {
+      state.hintOpen = true;
+      document.getElementById('hint-section')?.classList.add('open');
+      const hintBtn = document.getElementById('hint-btn');
+      if (hintBtn) hintBtn.textContent = 'Skjul tænkevej';
+    }
+    // Show skip button after 4 wrong answers
+    if (state.wrongCount >= 4) {
+      document.getElementById('skip-btn')?.classList.add('visible');
+    }
+    updateStreakDisplay();
   }
+}
+
+// ── COLLECTIBLE REVEAL MODAL ──────────────────
+
+function showCollectibleReveal(themeId, chapterIdx, isPerfect) {
+  const theme = GAME_DATA[themeId];
+  if (!theme?.collectibles) { _showNextBtn(); return; }
+  const item = theme.collectibles[chapterIdx];
+  if (!item) { _showNextBtn(); return; }
+
+  // Deterministic "rare" check — Nørd always rare, else ~1 in 7
+  const themeOrder = ['kpop','gaming','football','ronaldo','brawlstars','anime','jjk','geography'];
+  const tIdx  = Math.max(0, themeOrder.indexOf(themeId));
+  const isRare = state.selectedLevel === 3 || ((tIdx * 13 + chapterIdx * 7) % 7 === 0);
+
+  playSound('collect');
+  if (isRare || isPerfect) setTimeout(triggerConfetti, 200);
+
+  const badgeText = isRare ? '✦ SJÆLDEN ✦' : isPerfect ? '⚡ PERFEKT ⚡' : 'NY GENSTAND!';
+  const modalClass = [isRare ? 'is-rare' : '', isPerfect ? 'is-perfect' : ''].filter(Boolean).join(' ');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'collect-overlay';
+  overlay.innerHTML = `
+    <div class="collect-modal ${modalClass}">
+      <div class="cm-badge">${badgeText}</div>
+      <div class="cm-card">
+        <div class="cm-shine"></div>
+        <div class="cm-icon">${item.icon}</div>
+        <div class="cm-name">${item.name}</div>
+        <div class="cm-desc">${item.desc}</div>
+        ${isPerfect ? '<div class="cm-perfect-tag">Første forsøg 🌟</div>' : ''}
+      </div>
+      <div class="cm-dismiss">Tryk for at fortsætte</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('visible')));
+
+  let dismissed = false;
+  const dismiss = () => {
+    if (dismissed) return;
+    dismissed = true;
+    overlay.classList.remove('visible');
+    setTimeout(() => { overlay.remove(); _showNextBtn(); }, 380);
+  };
+
+  overlay.addEventListener('click', dismiss);
+  setTimeout(dismiss, 6000); // auto-dismiss after 6s
+}
+
+function _showNextBtn() {
+  const nextBtn = document.getElementById('next-btn');
+  if (nextBtn) {
+    nextBtn.classList.add('visible');
+    nextBtn.textContent = state.chapter === 9 ? 'Se afslutningen →' : 'Næste kapitel →';
+  }
+}
+
+function updateStreakDisplay() {
+  const el = document.getElementById('streak-display');
+  if (!el) return;
+  el.textContent = `🔥 ${state.streak}`;
+  if (state.streak >= 2) {
+    el.classList.remove('hidden'); el.classList.add('active');
+  } else {
+    el.classList.remove('active'); el.classList.add('hidden');
+  }
+}
+
+function skipChapter() {
+  if (state.answered) return;
+  state.answered = true; state.streak = 0;
+  const ch       = GAME_DATA[state.theme].chapters[state.chapter];
+  const mathData = MATH[ch.lvlData][state.selectedLevel][getVariantIdx(state.theme, state.chapter)];
+  const input    = document.getElementById('answer-input');
+  const feedback = document.getElementById('feedback');
+  if (input) { input.readOnly = true; input.value = mathData.ans; input.classList.add('correct'); }
+  if (feedback) {
+    feedback.textContent = `Svaret var ${mathData.ans}. Det klarer du næste gang! 💪`;
+    feedback.className   = 'feedback skip-msg';
+  }
+  document.querySelector('.submit-btn')?.setAttribute('disabled', '');
+  updateStreakDisplay();
+  _showNextBtn();
 }
 
 // ── EVENT DELEGATION ──────────────────────────
@@ -1782,10 +2436,27 @@ document.getElementById('app').addEventListener('click', e => {
   else if (action === 'go-home')            goHome();
   else if (action === 'next-chapter')       nextChapter();
   else if (action === 'toggle-hint')        toggleHint();
+  else if (action === 'skip-chapter')       skipChapter();
+  else if (action === 'toggle-sound')       toggleSound();
 });
 
 document.getElementById('app').addEventListener('submit', e => {
   if (e.target.id === 'answer-form') { e.preventDefault(); handleAnswerSubmit(); }
+});
+
+// ── KEYBOARD SHORTCUTS ────────────────────────
+
+document.addEventListener('keydown', e => {
+  // Enter/Space dismisses collectible overlay
+  const overlay = document.querySelector('.collect-overlay');
+  if (overlay && (e.key === 'Enter' || e.key === ' ')) {
+    e.preventDefault(); overlay.click(); return;
+  }
+  // Enter advances to next chapter when answered
+  if (e.key === 'Enter' && state.screen === 'chapter' && state.answered) {
+    const nb = document.getElementById('next-btn');
+    if (nb?.classList.contains('visible')) { e.preventDefault(); nextChapter(); }
+  }
 });
 
 // ── INIT ──────────────────────────────────────
