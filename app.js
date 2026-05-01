@@ -1810,14 +1810,16 @@ const state = {
   wrongCount: 0,
   streak: 0,
   sessionScore: 0,
+  previousHighscore: 0,    // snapshot of theme highscore when run started
+  isNewHighscore: false,   // set true when run beats previousHighscore
   soundEnabled: (typeof localStorage !== 'undefined' && localStorage.getItem('regneparty_sound') === '0') ? false : true,
   progress: loadProgress(),
   collected: loadCollected()
 };
 
-// Progress shape: { themeId: { chapter, bestLevel, lastLevel, lastStoryLevel } }
+// Progress shape: { themeId: { chapter, bestLevel, lastLevel, lastStoryLevel, highscore, lastScore } }
 function blankProgress() {
-  return { chapter: 0, bestLevel: null, lastLevel: null, lastStoryLevel: null };
+  return { chapter: 0, bestLevel: null, lastLevel: null, lastStoryLevel: null, highscore: 0, lastScore: 0 };
 }
 function getThemeProgress(themeId) {
   return state.progress[themeId] || blankProgress();
@@ -1829,8 +1831,16 @@ function saveThemeProgress(themeId, patch) {
     merged.bestLevel = (cur.bestLevel === null || patch.bestLevel > cur.bestLevel)
       ? patch.bestLevel : cur.bestLevel;
   }
+  if (patch.highscore !== undefined) {
+    merged.highscore = Math.max(cur.highscore || 0, patch.highscore);
+  }
   state.progress[themeId] = merged;
   saveProgress();
+}
+
+// Total highscore across all themes
+function getTotalHighscore() {
+  return Object.values(state.progress).reduce((sum, p) => sum + (p.highscore || 0), 0);
 }
 
 function loadProgress() {
@@ -1933,6 +1943,7 @@ function renderHome() {
 
     const hasDone  = done >= 10;
     const hasStart = done > 0 && done < 10;
+    const hi       = p.highscore || 0;
     return `
       <button class="theme-card ${theme.id}" data-action="select-theme" data-payload="${theme.id}" aria-label="Vælg ${theme.name}">
         <img class="theme-card-img" src="img/bg/bg-${theme.id}.png" alt="" />
@@ -1942,6 +1953,7 @@ function renderHome() {
         <div class="theme-card-overlay" aria-hidden="true"></div>
         ${hasDone  ? '<span class="theme-card-badge done">✓</span>' : ''}
         ${hasStart ? `<span class="theme-card-badge progress">${done}/10</span>` : ''}
+        ${hi > 0  ? `<span class="theme-card-hiscore">🏆 ${hi}</span>` : ''}
         <div class="theme-card-body">
           <span class="theme-card-title">${theme.name}</span>
           <span class="theme-card-tagline">${theme.tagline}</span>
@@ -1966,11 +1978,15 @@ function renderHome() {
         <div class="hp-particles">${particles}</div>
       </div>
 
-      <!-- Top bar: text only, compact -->
+      <!-- Top bar: logo mark, compact -->
       <header class="home-topbar">
-        <div class="home-topbar-brand">
-          <span class="home-topbar-title">4Y's Regnemaskine</span>
-          <span class="home-topbar-meta">4. klasse · matematik · 8 universer</span>
+        <div class="home-topbar-brand" aria-label="GVS Math League">
+          <span class="brand-mark" aria-hidden="true">
+            <span class="brand-mark-text">GVS</span>
+          </span>
+          <span class="brand-wordmark" aria-hidden="true">
+            <span class="brand-wordmark-line">MATH</span><span class="brand-wordmark-dot">●</span><span class="brand-wordmark-line">LEAGUE</span>
+          </span>
         </div>
         <div class="home-topbar-right">
           <span class="beta-badge">BETA</span>
@@ -1985,6 +2001,8 @@ function renderHome() {
 
 function renderLevelSelect() {
   const theme = GAME_DATA[state.theme];
+  const themeProgress = getThemeProgress(state.theme);
+  const themeHi = themeProgress.highscore || 0;
 
   const posterWords = (theme.name + ' UNIVERS')
     .split(' ')
@@ -2048,6 +2066,9 @@ function renderLevelSelect() {
         <div class="config-overlay-header">
           <h2 class="config-overlay-name">${theme.name}</h2>
           <p class="config-overlay-sub">Vælg sværhedsgrad og historieniveau</p>
+          ${themeHi > 0
+            ? `<div class="config-highscore">🏆 Din highscore: <strong>${themeHi}</strong> · slå den!</div>`
+            : `<div class="config-highscore muted">🏆 Ingen highscore endnu — sæt din første!</div>`}
         </div>
 
         <div class="config-section">
@@ -2193,7 +2214,11 @@ function renderChapter() {
       <div class="chapter-topbar">
         <button class="back-btn" data-action="go-home">← Temaer</button>
         <span class="ch-meta">KAPITEL ${n} AF 10 &nbsp;·&nbsp; ${theme.icon} ${theme.name} &nbsp;·&nbsp; ${stars} ${levelName} &nbsp;·&nbsp; 📖 ${storyLabel}${state.streak >= 2 ? `&nbsp;·&nbsp;<span class="streak-badge active" id="streak-display">🔥 ${state.streak}</span>` : `<span class="streak-badge hidden" id="streak-display">🔥 ${state.streak}</span>`}</span>
-        <div class="progress-dots">${renderProgressDots(state.chapter)}</div>
+        <div class="ch-score-cluster">
+          <span class="ch-score-chip" id="score-chip" title="Din score lige nu">💎 <strong>${state.sessionScore}</strong></span>
+          ${state.previousHighscore > 0 ? `<span class="ch-highscore-chip ${state.sessionScore > state.previousHighscore ? 'beat' : ''}" title="Highscore at slå">🏆 ${state.previousHighscore}</span>` : ''}
+          <div class="progress-dots">${renderProgressDots(state.chapter)}</div>
+        </div>
       </div>
 
       <!-- Centered single-panel stage -->
@@ -2220,6 +2245,30 @@ function renderComplete() {
     </div>`;
   }).join('');
 
+  // Score panel
+  const finalScore   = state.sessionScore;
+  const prevHi       = state.previousHighscore || 0;
+  const isNew        = state.isNewHighscore;
+  const diff         = finalScore - prevHi;
+  const scorePanel = `
+    <div class="complete-score-panel ${isNew ? 'new-highscore' : ''}">
+      ${isNew ? `<div class="score-banner">🏆 NY HIGHSCORE!</div>` : (prevHi > 0 ? `<div class="score-banner muted">Din runde</div>` : `<div class="score-banner muted">Første runde — sæt din highscore!</div>`)}
+      <div class="score-final">
+        <span class="score-label">Din score</span>
+        <span class="score-value">${finalScore}</span>
+      </div>
+      ${prevHi > 0 ? `
+        <div class="score-prev">
+          <span class="score-prev-label">Tidligere highscore</span>
+          <span class="score-prev-value">${prevHi}</span>
+        </div>
+        <div class="score-diff ${diff > 0 ? 'pos' : (diff < 0 ? 'neg' : 'eq')}">
+          ${diff > 0 ? `▲ +${diff} point` : (diff < 0 ? `▼ ${diff} point — prøv igen for at slå den!` : `Lige op med din rekord`)}
+        </div>
+      ` : ''}
+      <button class="replay-btn" data-action="replay-theme">Spil igen — slå din score</button>
+    </div>`;
+
   return `
     <div class="complete-screen">
       <div class="complete-bg" aria-hidden="true">
@@ -2230,6 +2279,7 @@ function renderComplete() {
         <img class="complete-icon" src="img/icons/icon-${state.theme}.png" alt="" />
         <span class="complete-trophy">${theme.endingTrophy}</span>
         <h2 class="complete-title">${theme.endingTitle}</h2>
+        ${scorePanel}
       </div>
       <div class="complete-right">
         <div class="complete-story">${storyParagraphs}</div>
@@ -2275,6 +2325,8 @@ function startAdventure() {
   state.chapterPhase = 'story';
   state.answered = false; state.hintOpen = false; state.wrongCount = 0;
   state.streak   = 0;     state.sessionScore = 0;
+  state.previousHighscore = p.highscore || 0;
+  state.isNewHighscore    = false;
   state.screen   = 'chapter';
   saveThemeProgress(state.theme, { lastLevel: state.selectedLevel, lastStoryLevel: state.selectedStoryLevel });
   render();
@@ -2297,7 +2349,14 @@ function goHome() {
 function nextChapter() {
   const next = state.chapter + 1;
   if (next >= 10) {
-    saveThemeProgress(state.theme, { chapter: 10, bestLevel: state.selectedLevel });
+    const prevHi = state.previousHighscore || 0;
+    state.isNewHighscore = state.sessionScore > prevHi;
+    saveThemeProgress(state.theme, {
+      chapter: 10,
+      bestLevel: state.selectedLevel,
+      highscore: state.sessionScore,
+      lastScore: state.sessionScore
+    });
     state.screen = 'complete';
     render();
   } else {
@@ -2309,6 +2368,25 @@ function nextChapter() {
     state.wrongCount   = 0;
     render();
   }
+}
+
+function replayTheme() {
+  // Reset chapter pointer to 0 for this theme so the player can re-run for a new highscore
+  if (!state.theme) return;
+  saveThemeProgress(state.theme, { chapter: 0 });
+  // Snapshot current highscore to beat
+  const p = getThemeProgress(state.theme);
+  state.previousHighscore = p.highscore || 0;
+  state.isNewHighscore    = false;
+  state.chapter           = 0;
+  state.chapterPhase      = 'story';
+  state.answered          = false;
+  state.hintOpen          = false;
+  state.wrongCount        = 0;
+  state.streak            = 0;
+  state.sessionScore      = 0;
+  state.screen            = 'chapter';
+  render();
 }
 
 function readStoryDone() {
@@ -2350,7 +2428,14 @@ function handleAnswerSubmit() {
     state.answered = true;
     const isPerfect  = (state.wrongCount === 0);
     state.streak++;
-    state.sessionScore += [10, 20, 35, 60][state.selectedLevel] * (isPerfect ? 2 : 1);
+    // Base × perfect-bonus × streak-bonus
+    const base        = [10, 20, 35, 60][state.selectedLevel];
+    const perfectMult = isPerfect ? 2 : 1;
+    // Streak bonus: 3-in-a-row = ×1.25, 5+ = ×1.5
+    let streakMult = 1;
+    if (state.streak >= 5)      streakMult = 1.5;
+    else if (state.streak >= 3) streakMult = 1.25;
+    state.sessionScore += Math.round(base * perfectMult * streakMult);
 
     const successMsg = applyTemplate(ch.successMsgTemplate, { ...mathData.vars, answer: mathData.ans });
     input.classList.add('correct');
@@ -2367,6 +2452,7 @@ function handleAnswerSubmit() {
     document.querySelector('.submit-btn')?.setAttribute('disabled', '');
     input.readOnly = true;
     updateStreakDisplay();
+    bumpScoreChip();
     triggerConfetti();
     playSound(isPerfect ? 'perfect' : 'correct');
 
@@ -2489,6 +2575,27 @@ function updateStreakDisplay() {
   }
 }
 
+function bumpScoreChip() {
+  const chip = document.getElementById('score-chip');
+  if (!chip) return;
+  // Update value first
+  const strong = chip.querySelector('strong');
+  if (strong) strong.textContent = String(state.sessionScore);
+  // Re-trigger CSS animation
+  chip.classList.remove('bump');
+  // force reflow so the class re-add restarts the transition
+  void chip.offsetWidth;
+  chip.classList.add('bump');
+  setTimeout(() => chip.classList.remove('bump'), 320);
+
+  // Update highscore-beat indicator if applicable
+  const hi = document.querySelector('.ch-highscore-chip');
+  if (hi && state.previousHighscore > 0) {
+    if (state.sessionScore > state.previousHighscore) hi.classList.add('beat');
+    else hi.classList.remove('beat');
+  }
+}
+
 function skipChapter() {
   if (state.answered) return;
   state.answered = true; state.streak = 0;
@@ -2523,6 +2630,7 @@ document.getElementById('app').addEventListener('click', e => {
   else if (action === 'toggle-hint')        toggleHint();
   else if (action === 'skip-chapter')       skipChapter();
   else if (action === 'toggle-sound')       toggleSound();
+  else if (action === 'replay-theme')       replayTheme();
 });
 
 document.getElementById('app').addEventListener('submit', e => {
