@@ -1802,6 +1802,7 @@ const state = {
   screen: 'home',            // 'home' | 'level-select' | 'chapter' | 'complete'
   theme: null,
   chapter: 0,
+  chapterPhase: 'story',     // 'story' | 'math' — split each chapter in two
   selectedLevel: null,       // 0=Nem 1=Mellem 2=Svær 3=Nørd — math difficulty
   selectedStoryLevel: null,  // 0=Kort 1=Normal 2=Dyb — story reading depth
   answered: false,
@@ -1909,7 +1910,10 @@ function render() {
 
 function renderHome() {
   const levelNames = ['Nem','Mellem','Svær','Nørd'];
-  const bars = Object.values(GAME_DATA).map((theme, idx) => {
+  // Custom display order — football and ronaldo placed furthest apart (slot 1 and slot 8)
+  const HOME_ORDER = ['ronaldo', 'kpop', 'gaming', 'brawlstars', 'anime', 'jjk', 'geography', 'football'];
+  const orderedThemes = HOME_ORDER.map(id => GAME_DATA[id]).filter(Boolean);
+  const bars = orderedThemes.map((theme, idx) => {
     const p    = getThemeProgress(theme.id);
     const done = p.chapter;
     let progressLabel = '';
@@ -1927,34 +1931,55 @@ function renderHome() {
       ? `<span class="theme-bar-collect">${numCollected}/10 ✦</span>`
       : '';
 
+    const hasDone  = done >= 10;
+    const hasStart = done > 0 && done < 10;
     return `
-      <button class="theme-bar ${theme.id}" data-action="select-theme" data-payload="${theme.id}" data-n="${idx + 1}" aria-label="Vælg ${theme.name}">
-        <span class="theme-bar-icon">${theme.icon}</span>
-        <span class="theme-bar-name">${theme.name}</span>
-        <span class="theme-bar-tagline">${theme.tagline}</span>
-        ${progressLabel}${collectLabel}
+      <button class="theme-card ${theme.id}" data-action="select-theme" data-payload="${theme.id}" aria-label="Vælg ${theme.name}">
+        <img class="theme-card-img" src="img/bg/bg-${theme.id}.png" alt="" />
+        <div class="theme-card-sweep" aria-hidden="true"></div>
+        <div class="theme-card-grain" aria-hidden="true"></div>
+        <div class="theme-card-glow"  aria-hidden="true"></div>
+        <div class="theme-card-overlay" aria-hidden="true"></div>
+        ${hasDone  ? '<span class="theme-card-badge done">✓</span>' : ''}
+        ${hasStart ? `<span class="theme-card-badge progress">${done}/10</span>` : ''}
+        <div class="theme-card-body">
+          <span class="theme-card-title">${theme.name}</span>
+          <span class="theme-card-tagline">${theme.tagline}</span>
+        </div>
       </button>`;
   }).join('');
 
   const soundIcon = state.soundEnabled ? '🔊' : '🔇';
 
+  // Particle stars
+  const particles = Array.from({length: 28}, (_, i) =>
+    `<span class="hp-particle hp-p${(i % 6) + 1}" style="--d:${(i * 0.41) % 7}s; --x:${((i * 53) % 100)}%; --y:${((i * 79) % 100)}%"></span>`
+  ).join('');
+
   return `
     <div class="home-screen">
-      <button class="sound-btn" id="sound-btn" data-action="toggle-sound" title="Lyd til/fra">${soundIcon}</button>
-      <div class="home-orbs" aria-hidden="true">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
+
+      <!-- Atmosphere -->
+      <div class="home-stage" aria-hidden="true">
+        <div class="hp-aurora"></div>
+        <div class="hp-rays"></div>
+        <div class="hp-particles">${particles}</div>
       </div>
-      <div class="home-hero">
-        <span class="home-eyebrow">4. klasse · matematik · 8 universer</span>
-        <h1 class="home-title">
-          <span class="line1">4klasses</span>
-          <span class="line2">Regnemaskine<span class="beta-badge">BETA</span></span>
-        </h1>
-        <span class="home-sub">Vælg dit univers — og løs de ti koder</span>
-      </div>
-      <div class="theme-grid">${bars}</div>
+
+      <!-- Top bar: text only, compact -->
+      <header class="home-topbar">
+        <div class="home-topbar-brand">
+          <span class="home-topbar-title">4Y's Regnemaskine</span>
+          <span class="home-topbar-meta">4. klasse · matematik · 8 universer</span>
+        </div>
+        <div class="home-topbar-right">
+          <span class="beta-badge">BETA</span>
+          <button class="sound-btn" id="sound-btn" data-action="toggle-sound" title="Lyd til/fra">${soundIcon}</button>
+        </div>
+      </header>
+
+      <!-- Full-bleed game catalog -->
+      <nav class="theme-catalog" aria-label="Vælg dit univers">${bars}</nav>
     </div>`;
 }
 
@@ -2001,29 +2026,37 @@ function renderLevelSelect() {
 
   return `
     <div class="config-screen">
-      <div class="chapter-topbar">
+
+      <!-- Fullscreen background image -->
+      <div class="config-bg" aria-hidden="true">
+        <img src="img/bg/bg-${theme.id}.png" alt="" />
+        <div class="config-bg-grain"></div>
+        <div class="config-bg-sweep"></div>
+        <div class="config-bg-overlay"></div>
+        <div class="config-bg-vignette"></div>
+      </div>
+
+      <!-- Topbar -->
+      <div class="config-topbar">
         <button class="back-btn" data-action="go-home">← Temaer</button>
-        <span class="ch-meta">${theme.icon} ${theme.name}</span>
+        <span class="config-topbar-title">${theme.icon} ${theme.name}</span>
         <span></span>
       </div>
-      <div class="ch-poster" aria-hidden="true">${posterWords}</div>
-      <div class="config-panel">
-        <div class="config-hero">
-          <h2 class="config-title">Tilpas dit eventyr</h2>
-          <p class="config-sub">Vælg begge niveauer — og start eventyret.</p>
+
+      <!-- Centered overlay panel -->
+      <div class="config-overlay">
+        <div class="config-overlay-header">
+          <h2 class="config-overlay-name">${theme.name}</h2>
+          <p class="config-overlay-sub">Vælg sværhedsgrad og historieniveau</p>
         </div>
 
         <div class="config-section">
-          <div class="config-label">
-            <span class="config-label-icon">🔢</span> Regnelevel
-          </div>
+          <div class="config-label"><span class="config-label-icon">🔢</span> Regnelevel</div>
           <div class="cfg-choices math-choices">${mathChoices}</div>
         </div>
 
         <div class="config-section">
-          <div class="config-label">
-            <span class="config-label-icon">📖</span> Historieniveau
-          </div>
+          <div class="config-label"><span class="config-label-icon">📖</span> Historieniveau</div>
           <div class="cfg-choices story-choices">${storyChoices}</div>
         </div>
 
@@ -2089,65 +2122,83 @@ function renderChapter() {
       <span>${s}</span>
     </div>`).join('');
 
-  return `
-    <div class="chapter-screen">
+  const phase = state.chapterPhase || 'story';
 
-      <!-- Topbar — spans both columns -->
+  const storyPanel = `
+    <div class="ch-panel ch-panel-story">
+      <span class="ch-phase-tag">📖 Historien</span>
+      <h2 class="ch-title">${ch.title}</h2>
+      <div class="story-text">${storyParagraphs}</div>
+      <button class="ch-continue-btn" data-action="read-story-done">
+        Videre til opgaven →
+      </button>
+    </div>`;
+
+  const mathPanel = `
+    <div class="ch-panel ch-panel-math">
+      <button class="back-to-story-btn" data-action="back-to-story" type="button">← Læs historien igen</button>
+      <span class="ch-phase-tag math">🔢 Opgaven</span>
+      <p class="question-text">${question}</p>
+      <div class="math-note">
+        <span class="math-note-label">Tænkeidé</span>
+        <span class="math-note-body">${mathNote}</span>
+      </div>
+      <form class="answer-form" id="answer-form" novalidate>
+        <input
+          type="text"
+          id="answer-input"
+          class="answer-input"
+          placeholder="Skriv dit svar…"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          inputmode="decimal"
+          ${state.answered ? 'readonly' : ''}
+        />
+        <button type="submit" class="submit-btn" ${state.answered ? 'disabled' : ''}>Tjek svar</button>
+      </form>
+      <div class="feedback" id="feedback"></div>
+      <div class="answer-explanation" id="answer-explanation"></div>
+      <div class="hint-section ${state.hintOpen ? 'open' : ''}" id="hint-section">
+        <div class="hint-box">
+          <div class="hint-title">Tænkevej</div>
+          ${hintSteps}
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="hint-btn" data-action="toggle-hint" id="hint-btn">
+          ${state.hintOpen ? 'Skjul tænkevej' : 'Vis tænkevej'}
+        </button>
+        <button class="skip-btn ${state.wrongCount >= 4 ? 'visible' : ''}" data-action="skip-chapter" id="skip-btn">
+          Vis svaret — ingen collectible
+        </button>
+        <button class="next-btn ${state.answered ? 'visible' : ''}" data-action="next-chapter" id="next-btn">
+          ${nextLabel}
+        </button>
+      </div>
+    </div>`;
+
+  return `
+    <div class="chapter-screen phase-${phase}">
+
+      <!-- Cinematic backdrop image -->
+      <div class="chapter-bg" aria-hidden="true">
+        <img src="img/bg/bg-${state.theme}.png" alt="" />
+        <div class="chapter-bg-grain"></div>
+        <div class="chapter-bg-sweep"></div>
+        <div class="chapter-bg-overlay"></div>
+      </div>
+
+      <!-- Topbar -->
       <div class="chapter-topbar">
         <button class="back-btn" data-action="go-home">← Temaer</button>
         <span class="ch-meta">KAPITEL ${n} AF 10 &nbsp;·&nbsp; ${theme.icon} ${theme.name} &nbsp;·&nbsp; ${stars} ${levelName} &nbsp;·&nbsp; 📖 ${storyLabel}${state.streak >= 2 ? `&nbsp;·&nbsp;<span class="streak-badge active" id="streak-display">🔥 ${state.streak}</span>` : `<span class="streak-badge hidden" id="streak-display">🔥 ${state.streak}</span>`}</span>
         <div class="progress-dots">${renderProgressDots(state.chapter)}</div>
       </div>
 
-      <!-- Ghost poster words (fixed backdrop) -->
-      <div class="ch-poster" aria-hidden="true">${posterWords}</div>
-
-      <!-- LEFT: story -->
-      <div class="ch-left">
-        <h2 class="ch-title">${ch.title}</h2>
-        <div class="story-text">${storyParagraphs}</div>
-      </div>
-
-      <!-- RIGHT: question + answer -->
-      <div class="ch-right">
-        <p class="question-text">${question}</p>
-        <div class="math-note">
-          <span class="math-note-label">Tænkeidé</span>
-          <span class="math-note-body">${mathNote}</span>
-        </div>
-        <form class="answer-form" id="answer-form" novalidate>
-          <input
-            type="text"
-            id="answer-input"
-            class="answer-input"
-            placeholder="Skriv dit svar…"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-            inputmode="decimal"
-            ${state.answered ? 'readonly' : ''}
-          />
-          <button type="submit" class="submit-btn" ${state.answered ? 'disabled' : ''}>Tjek svar</button>
-        </form>
-        <div class="feedback" id="feedback"></div>
-        <div class="answer-explanation" id="answer-explanation"></div>
-        <div class="hint-section ${state.hintOpen ? 'open' : ''}" id="hint-section">
-          <div class="hint-box">
-            <div class="hint-title">Tænkevej</div>
-            ${hintSteps}
-          </div>
-        </div>
-        <div class="card-actions">
-          <button class="hint-btn" data-action="toggle-hint" id="hint-btn">
-            ${state.hintOpen ? 'Skjul tænkevej' : 'Vis tænkevej'}
-          </button>
-          <button class="skip-btn ${state.wrongCount >= 4 ? 'visible' : ''}" data-action="skip-chapter" id="skip-btn">
-            Vis svaret — ingen collectible
-          </button>
-          <button class="next-btn ${state.answered ? 'visible' : ''}" data-action="next-chapter" id="next-btn">
-            ${nextLabel}
-          </button>
-        </div>
+      <!-- Centered single-panel stage -->
+      <div class="ch-stage">
+        ${phase === 'story' ? storyPanel : mathPanel}
       </div>
 
     </div>`;
@@ -2171,7 +2222,12 @@ function renderComplete() {
 
   return `
     <div class="complete-screen">
+      <div class="complete-bg" aria-hidden="true">
+        <img src="img/bg/bg-${state.theme}.png" alt="" />
+        <div class="complete-bg-overlay"></div>
+      </div>
       <div class="complete-left">
+        <img class="complete-icon" src="img/icons/icon-${state.theme}.png" alt="" />
         <span class="complete-trophy">${theme.endingTrophy}</span>
         <h2 class="complete-title">${theme.endingTitle}</h2>
       </div>
@@ -2216,6 +2272,7 @@ function startAdventure() {
   if (state.selectedLevel === null || state.selectedStoryLevel === null) return;
   const p        = getThemeProgress(state.theme);
   state.chapter  = p.chapter >= 10 ? 0 : p.chapter;
+  state.chapterPhase = 'story';
   state.answered = false; state.hintOpen = false; state.wrongCount = 0;
   state.streak   = 0;     state.sessionScore = 0;
   state.screen   = 'chapter';
@@ -2226,6 +2283,7 @@ function startAdventure() {
 function goHome() {
   state.screen             = 'home';
   state.theme              = null;
+  state.chapterPhase       = 'story';
   state.selectedLevel      = null;
   state.selectedStoryLevel = null;
   state.answered           = false;
@@ -2244,12 +2302,23 @@ function nextChapter() {
     render();
   } else {
     saveThemeProgress(state.theme, { chapter: next, bestLevel: state.selectedLevel });
-    state.chapter    = next;
-    state.answered   = false;
-    state.hintOpen   = false;
-    state.wrongCount = 0;
+    state.chapter      = next;
+    state.chapterPhase = 'story';
+    state.answered     = false;
+    state.hintOpen     = false;
+    state.wrongCount   = 0;
     render();
   }
+}
+
+function readStoryDone() {
+  state.chapterPhase = 'math';
+  render();
+}
+
+function backToStory() {
+  state.chapterPhase = 'story';
+  render();
 }
 
 function toggleHint() {
@@ -2356,17 +2425,31 @@ function showCollectibleReveal(themeId, chapterIdx, isPerfect) {
   const badgeText = isRare ? '✦ SJÆLDEN ✦' : isPerfect ? '⚡ PERFEKT ⚡' : 'NY GENSTAND!';
   const modalClass = [isRare ? 'is-rare' : '', isPerfect ? 'is-perfect' : ''].filter(Boolean).join(' ');
 
+  const cardNum   = String(chapterIdx + 1).padStart(2, '0');
+  const setLabel  = `${theme.icon} ${theme.name.toUpperCase()} COLLECTION`;
+
   const overlay = document.createElement('div');
-  overlay.className = 'collect-overlay';
+  overlay.className = `collect-overlay theme-${themeId}`;
   overlay.innerHTML = `
     <div class="collect-modal ${modalClass}">
       <div class="cm-badge">${badgeText}</div>
-      <div class="cm-card">
-        <div class="cm-shine"></div>
-        <div class="cm-icon">${item.icon}</div>
-        <div class="cm-name">${item.name}</div>
-        <div class="cm-desc">${item.desc}</div>
-        ${isPerfect ? '<div class="cm-perfect-tag">Første forsøg 🌟</div>' : ''}
+      <div class="cm-card" data-card-theme="${themeId}">
+        <div class="cm-holo"      aria-hidden="true"></div>
+        <div class="cm-shine"     aria-hidden="true"></div>
+        <div class="cm-pattern"   aria-hidden="true"></div>
+        <div class="cm-card-header">
+          <span class="cm-card-set">${setLabel}</span>
+          <span class="cm-card-number">${cardNum}<span class="cm-card-total">/10</span></span>
+        </div>
+        <div class="cm-card-photo">
+          <div class="cm-photo-glow" aria-hidden="true"></div>
+          <span class="cm-icon">${item.icon}</span>
+        </div>
+        <div class="cm-card-footer">
+          <div class="cm-name">${item.name}</div>
+          <div class="cm-desc">${item.desc}</div>
+          ${isPerfect ? '<div class="cm-perfect-tag">⚡ Første forsøg</div>' : ''}
+        </div>
       </div>
       <div class="cm-dismiss">Tryk for at fortsætte</div>
     </div>
@@ -2435,6 +2518,8 @@ document.getElementById('app').addEventListener('click', e => {
   else if (action === 'start-adventure')    startAdventure();
   else if (action === 'go-home')            goHome();
   else if (action === 'next-chapter')       nextChapter();
+  else if (action === 'read-story-done')    readStoryDone();
+  else if (action === 'back-to-story')      backToStory();
   else if (action === 'toggle-hint')        toggleHint();
   else if (action === 'skip-chapter')       skipChapter();
   else if (action === 'toggle-sound')       toggleSound();
@@ -2451,6 +2536,10 @@ document.addEventListener('keydown', e => {
   const overlay = document.querySelector('.collect-overlay');
   if (overlay && (e.key === 'Enter' || e.key === ' ')) {
     e.preventDefault(); overlay.click(); return;
+  }
+  // Enter in story phase advances to math
+  if (e.key === 'Enter' && state.screen === 'chapter' && state.chapterPhase === 'story') {
+    e.preventDefault(); readStoryDone(); return;
   }
   // Enter advances to next chapter when answered
   if (e.key === 'Enter' && state.screen === 'chapter' && state.answered) {
